@@ -1,0 +1,14 @@
+{
+  "name": "backend-typescript-prac",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node dist/index",
+    "build":"tsc -p ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
