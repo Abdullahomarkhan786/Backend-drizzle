@@ -7,8 +7,9 @@ export const usersTable = pgTable("users", {
   firstName: varchar('first_name',{length:45}).notNull(), //here this first_name will be the database name, in our application its firstName in databse its first_name
   lastName:varchar('last_name',{length:45}),
   emailVerified:boolean('email_verified').default(false).notNull(),
+  age: integer('age').notNull(),
 
-  age: integer().notNull(),
+
   email: varchar({ length: 322 }).notNull().unique(),
   password:varchar('password',{length:66}), //even password is not necessary because google login option
   salt:text('salt'),
