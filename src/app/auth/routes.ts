@@ -12,4 +12,4 @@ authRouter.post('/sign-up',authenticationController.handleSignup.bind(authentica
 authRouter.post('/sign-in',authenticationController.handleSignin.bind(authenticationController))
 
 //for restricting
-authRouter.get('/me',restrictToAuthenticatedUser())
+authRouter.get('/me',restrictToAuthenticatedUser(),authenticationController.handleMe.bind(authenticationController))
