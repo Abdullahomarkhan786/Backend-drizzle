@@ -1,9 +1,10 @@
 import type {Request,Response} from 'express';
 import { eq } from 'drizzle-orm';
-import { signupPayloadModel } from './models.js';
+import { signinPayloadModel, signupPayloadModel } from './models.js';
 import { usersTable } from '../../db/schema.js';
 import { db } from '../../db/index.js';
 import {randomBytes,createHmac} from 'node:crypto';
+import { createUserToken, type UserTokenPayload } from '../utils/token.js';
 
 class AuthenticationController{
     public async handleSignup(req:Request,res:Response){
@@ -45,6 +46,42 @@ class AuthenticationController{
         
         return res.status(201).json({ message: 'user has been created successfully', data: { id: result?.id } })
         
+    }
+
+    public async handleSignin(req:Request,res:Response){
+        const validationResult=await signinPayloadModel.safeParseAsync(req.body);
+
+        if(validationResult.error) return res.status(400).json({message:'body validation failed',error:validationResult.error.issues})
+
+        const {email,password}=validationResult.data
+
+
+        const [userSelect] = await db.select().from(usersTable).where(eq(usersTable.email, email)) //it returns a array and it will return only one unique id
+
+        if (!userSelect) return res.status(404).json({ message: `user with email ${email} does not exists` })
+        //if matches then match hash
+        const salt=userSelect.salt! //because salt might be there or might not be
+        const hash = createHmac('sha256', salt).update(password).digest('hex')
+
+        if (userSelect.password !== hash) return res.status(400).json({ message: `email or password is incorrect` })
+
+        //if user has entered the right credentials create token and return to user
+        const token = createUserToken({ id: userSelect.id })
+
+        return res.json({message:'signin successful',data:{token:token}})
+    }
+
+      public async handleMe(req: Request, res: Response) {
+       
+        const { id } = req.user! as UserTokenPayload
+
+        const [userResult] = await db.select().from(usersTable).where(eq(usersTable.id, id))
+
+        return res.json({
+            firstName: userResult?.firstName,
+            lastName: userResult?.lastName,
+            email: userResult?.email
+        })
     }
 }
 export default AuthenticationController;
